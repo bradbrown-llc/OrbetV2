@@ -43,7 +43,7 @@ contract Test {
                 mstore(ptr, mload(add(data, add(i, 0x55))))
             }
         }
-        bytes memory compareData = new bytes(data.length - callDataLength - 58);
+        bytes memory compareData = new bytes(data.length - callDataLength - 53);
         for (uint i = 0; i < data.length; i += 32) {
             assembly {
                 let ptr := add(compareData, add(i, 0x20))
