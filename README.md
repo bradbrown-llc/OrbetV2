@@ -62,7 +62,3 @@ The call data to be sent to the TO address. Call data format is described in the
 ### COMPAREDATA
 
 The call data retrieved is compared to the COMPAREDATA using the OPERATOR. For example, if the OPERATOR is 0, the Criteria will return true if the retrieved call data is less than or equal to the COMPAREDATA.
-
-## Values
-
-Values are like Criteria, with the exception that Values do no comparison and simply return the call data. Thus, a Value's formatting is the same as a Criteria without the OPERATOR and without the COMPAREDATA.
