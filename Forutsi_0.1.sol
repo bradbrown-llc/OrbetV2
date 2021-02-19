@@ -8,13 +8,12 @@ contract Test {
         
     }
     
-    function checkBet(bytes memory data) public view returns (bool) {
+    function checkCriteria(bytes memory data) public view returns (bool) {
         bytes1 operator;
-        uint40 expiry;
         address contractAddr;
         bytes memory callData;
         bytes memory compareData;
-        (operator, expiry, contractAddr, callData, compareData) = parseCriteriaHex(data);
+        (operator, contractAddr, callData, compareData) = parseCriteriaHex(data);
         (bool success, bytes memory returnData) = address(contractAddr).staticcall(callData);
         require(success, "call failed");
         bool testBet;
@@ -27,14 +26,12 @@ contract Test {
         return testBet;
     }
     
-    function parseCriteriaHex(bytes memory data) public pure returns (bytes1, uint40, address, bytes memory, bytes memory) {
+    function parseCriteriaHex(bytes memory data) public pure returns (bytes1, address, bytes memory, bytes memory) {
         bytes1 operator;
-        uint40 expiry;
         bytes20 contractAddr;
         bytes32 callDataLengthBytes;
         assembly {
             operator := mload(add(data, 0x20))
-            expiry := mload(add(data, 0x21))
             contractAddr := mload(add(data, 0x26))
             callDataLengthBytes := mload(add(data, 0x3A))
         }
@@ -53,7 +50,7 @@ contract Test {
                 mstore(ptr, mload(add(data, add(i, add(callDataLength, 0x5A)))))
             }
         }
-        return (operator, expiry, address(contractAddr), callData, compareData);
+        return (operator, address(contractAddr), callData, compareData);
     }
     
 }
