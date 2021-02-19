@@ -32,22 +32,22 @@ contract Test {
         bytes32 callDataLengthBytes;
         assembly {
             operator := mload(add(data, 0x20))
-            contractAddr := mload(add(data, 0x26))
-            callDataLengthBytes := mload(add(data, 0x3A))
+            contractAddr := mload(add(data, 0x21))
+            callDataLengthBytes := mload(add(data, 0x35))
         }
         uint callDataLength = uint(callDataLengthBytes);
         bytes memory callData = new bytes(callDataLength);
         for (uint i = 0; i < callDataLength; i += 32) {
             assembly {
                 let ptr := add(callData, add(i, 0x20))
-                mstore(ptr, mload(add(data, add(i, 0x5A))))
+                mstore(ptr, mload(add(data, add(i, 0x55))))
             }
         }
         bytes memory compareData = new bytes(data.length - callDataLength - 58);
         for (uint i = 0; i < data.length; i += 32) {
             assembly {
                 let ptr := add(compareData, add(i, 0x20))
-                mstore(ptr, mload(add(data, add(i, add(callDataLength, 0x5A)))))
+                mstore(ptr, mload(add(data, add(i, add(callDataLength, 0x55)))))
             }
         }
         return (operator, address(contractAddr), callData, compareData);
