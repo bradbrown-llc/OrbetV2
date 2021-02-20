@@ -64,10 +64,6 @@ contract Test {
         return (operator, address(contractAddr), callData, compareData);
     }
     
-    function checkPrediction(bytes memory data) public view returns (bool) {
-        
-    }
-    
     function parsePredictionHex(bytes memory data) public pure returns (uint40, uint8, bytes memory, bytes memory, bytes[] memory) {
         (uint40 expiry, uint8 criteriaCount, bytes memory operators, bytes memory priorities) = parsePredictionHexParams(data);
         bytes[] memory criteria = parsePredictionHexCriteria(data);
@@ -132,5 +128,14 @@ contract Test {
             criteriaCounter += 1;
         }
         return criteria;
+    }
+    
+    function checkPrediction(bytes memory data) public view returns (bool[] memory) {
+        (/*uint40 expiry, */,uint8 criteriaCount,,, /*bytes memory operators, bytes memory priorities, */bytes[] memory criteria) = parsePredictionHex(data);
+        bool[] memory criteriaChecks = new bool[](criteriaCount);
+        for (uint i = 0; i < criteriaCount; i++) {
+            criteriaChecks[i] = checkCriteria(criteria[i]);
+        }
+        return criteriaChecks;
     }
 }
