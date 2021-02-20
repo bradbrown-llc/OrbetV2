@@ -19,8 +19,23 @@ contract Test {
         bool testBet;
         if (operator == 0x00) assembly { testBet := or(eq(mload(add(returnData, 0x20)), mload(add(compareData, 0x20))), lt(mload(add(returnData, 0x20)), mload(add(compareData, 0x20)))) }
         if (operator == 0x01) assembly { testBet := lt(mload(add(returnData, 0x20)), mload(add(compareData, 0x20))) }
-        if (operator == 0x02) assembly { testBet := eq(mload(add(returnData, 0x20)), mload(add(compareData, 0x20))) }
-        if (operator == 0x03) assembly { testBet := not(eq(mload(add(returnData, 0x20)), mload(add(compareData, 0x20)))) }
+        if (operator == 0x02)
+            for (uint i = 0; i < compareData.length; i += 32) {
+                assembly { 
+                    testBet := eq(mload(add(returnData, add(0x20, i))), mload(add(compareData, add(0x20, i))))
+                }
+               if (!testBet) break;
+            }
+        if (operator == 0x03) 
+            for (uint i = 0; i < compareData.length; i += 32) {
+                assembly { 
+                    testBet := eq(mload(add(returnData, add(0x20, i))), mload(add(compareData, add(0x20, i))))
+                }
+               if (!testBet) {
+                   testBet = !testBet;
+                   break;
+               }
+            }
         if (operator == 0x04) assembly { testBet := or(eq(mload(add(returnData, 0x20)), mload(add(compareData, 0x20))), gt(mload(add(returnData, 0x20)), mload(add(compareData, 0x20)))) }
         if (operator == 0x05) assembly { testBet := gt(mload(add(returnData, 0x20)), mload(add(compareData, 0x20))) }
         return testBet;
@@ -51,6 +66,10 @@ contract Test {
             }
         }
         return (operator, address(contractAddr), callData, compareData);
+    }
+    
+    function parseValueHex(bytes memory data) public pure {
+        
     }
     
 }
