@@ -4,10 +4,6 @@ pragma solidity ^0.8.1;
 
 contract Test {
     
-    function createBet(bytes memory createBetData) public returns (bool) {
-        
-    }
-    
     function checkCriteria(bytes memory data) public view returns (bool) {
         bytes1 operator;
         address contractAddr;
@@ -41,7 +37,7 @@ contract Test {
         return testBet;
     }
     
-    function parseCriteriaHex(bytes memory data) public pure returns (bytes1, address, bytes memory, bytes memory) {
+    function parseCriteriaHex(bytes memory data) internal pure returns (bytes1, address, bytes memory, bytes memory) {
         bytes1 operator;
         bytes20 contractAddr;
         bytes32 callDataLengthBytes;
@@ -68,8 +64,73 @@ contract Test {
         return (operator, address(contractAddr), callData, compareData);
     }
     
-    function parseValueHex(bytes memory data) public pure {
+    function checkPrediction(bytes memory data) public view returns (bool) {
         
     }
     
+    function parsePredictionHex(bytes memory data) public pure returns (uint40, uint8, bytes memory, bytes memory, bytes[] memory) {
+        (uint40 expiry, uint8 criteriaCount, bytes memory operators, bytes memory priorities) = parsePredictionHexParams(data);
+        bytes[] memory criteria = parsePredictionHexCriteria(data);
+        return (expiry, criteriaCount, operators, priorities, criteria);
+    }
+    
+    function parsePredictionHexParams(bytes memory data) internal pure returns (uint40, uint8, bytes memory, bytes memory) {
+        bytes5 expiryBytes;
+        bytes1 criteriaCountBytes;
+        assembly {
+            expiryBytes := mload(add(data, 0x20))
+            criteriaCountBytes := mload(add(data, 0x25))
+        }
+        bytes memory operators = new bytes(uint8(criteriaCountBytes) - 1);
+        bytes memory priorities = new bytes(uint8(criteriaCountBytes) - 1);
+        for (uint i = 0; i < uint8(criteriaCountBytes) - 1; i += 2) {
+            assembly {
+                let ptr := add(operators, add(0x20, i))
+                mstore(ptr, mload(add(data, add(0x21, i))))
+                ptr := add(priorities, add(0x20, i))
+                mstore(ptr, mload(add(data, add(0x22, i))))
+            }
+        }
+        return (uint40(expiryBytes), uint8(criteriaCountBytes), operators, priorities);
+    }
+    
+    function parsePredictionHexCriteria(bytes memory data) internal pure returns (bytes[] memory) {
+        bytes5 expiryBytes;
+        bytes1 criteriaCountBytes;
+        assembly {
+            expiryBytes := mload(add(data, 0x20))
+            criteriaCountBytes := mload(add(data, 0x25))
+        }
+        bytes memory operators = new bytes(uint8(criteriaCountBytes) - 1);
+        bytes memory priorities = new bytes(uint8(criteriaCountBytes) - 1);
+        bytes[] memory criteria = new bytes[](uint8(criteriaCountBytes));
+        for (uint i = 0; i < uint8(criteriaCountBytes) - 1; i += 2) {
+            assembly {
+                let ptr := add(operators, add(0x20, i))
+                mstore(ptr, mload(add(data, add(0x21, i))))
+                ptr := add(priorities, add(0x20, i))
+                mstore(ptr, mload(add(data, add(0x22, i))))
+            }
+        }
+        uint criteriaCounter;
+        uint cursor = 32 + 1 + 5 + (uint8(criteriaCountBytes) - 1) * 2;
+        while (cursor < data.length) {
+            bytes32 criteriaLengthBytes;
+            assembly {
+                criteriaLengthBytes := mload(add(data, cursor))
+                cursor := add(0x20, cursor)
+            }
+            bytes memory criterium = new bytes(uint(criteriaLengthBytes));
+            for (uint i = 0; i < uint(criteriaLengthBytes); i += 32) {
+                assembly {
+                    let ptr := add(criterium, add(0x20, i))
+                    mstore(ptr, mload(add(data, add(cursor, i))))
+                }
+            }
+            cursor += uint(criteriaLengthBytes);
+            criteria[criteriaCounter] = criterium;
+            criteriaCounter += 1;
+        }
+        return criteria;
+    }
 }
