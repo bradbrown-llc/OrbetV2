@@ -5,13 +5,13 @@ The Prediction Market consists of Predictions.
 
 ## Prediction
 
-Predictions consist of a bytes object that follows a specific format describing the Prediction. 
+A Prediction consists of a bytes object that follows a specific format describing the Prediction. 
 
 FORMAT YET TO BE DETERMINED
 
 ## Criteria
 
-Each Criteria within a Prediction consists of a bytes object that follows a specific format describing the Criteria. Criteria return either true or false.
+A Criteria consists of a bytes object that follows a specific format describing the Criteria. Criteria return either true or false.
 
 Format:
 
