@@ -52,22 +52,55 @@ contract Forutsi {
                 switch stepType
                 case 0x00 { //store variable to stack
                     processPtr := add(processPtr, 0x01)
-                    //store varNum == mload(processPtr) at stackPtr+0x20*(stackCounter+1), then incrememnt stackCounter by 1, then processPtr by 0x20
-                    mstore(add(stackPtr, mul(0x20, add(mload(stackPtr), 1))), mload(processPtr))
+                    //store varType 0x01 (variable) at stackPtr+0x20*(stackCounter+1)
+                    mstore(add(stackPtr, mul(0x40, add(mload(stackPtr), 1))), 0x01)
+                    //store varNum == mload(processPtr) at 0x20+stackPtr+0x20*(stackCounter+1), then incrememnt stackCounter by 1, then processPtr by 0x20
+                    mstore(add(0x20, add(stackPtr, mul(0x40, add(mload(stackPtr), 1)))), mload(processPtr))
                     mstore(stackPtr, add(mload(stackPtr), 1))
                     processPtr := add(processPtr, 0x20)
                 }
-                case 0x01 { //add last two variables, return to stackPtr+0x20*(stackCounter-1), decrement stackCounter by 1, increment processPtr by 0x01
+                case 0x01 { //add last two variables, return to 0x20stackPtr+0x20*(stackCounter-1), decrement stackCounter by 1, increment processPtr by 0x01
+                    //lastVariableNum == mload(stackPtr+stackCounter*0x20)
+                    let lastVariableType := mload(add(stackPtr, mul(mload(stackPtr), 0x40)))
+                    let secondToLastVariableType := mload(add(stackPtr, mul(sub(mload(stackPtr), 1), 0x40)))
+                    let lastVariableNum
+                    let secondToLastVariableNum
+                    let lastVariable
+                    let secondToLastVariable
+                    switch lastVariableType
+                    case 0x00 {
+                        lastVariable := mload(add(0x20, add(stackPtr, mul(mload(stackPtr), 0x40))))
+                    }                        
+                    default {
+                        lastVariableNum := mload(add(0x20, add(stackPtr, mul(mload(stackPtr), 0x40))))
+                        lastVariable := mload(add(predictionHex, add(0x20, mload(add(predictionHex, add(0x20, add(mul(lastVariableNum, 0x20), mload(add(predictionHex, 0x40)))))))))
+                    }
+                    switch secondToLastVariableType
+                    case 0x00 {
+                        secondToLastVariable := mload(add(0x20, add(stackPtr, mul(sub(mload(stackPtr), 1), 0x40))))
+                    }
+                    default {
+                        secondToLastVariableNum := mload(add(0x20, add(stackPtr, mul(sub(mload(stackPtr), 1), 0x40))))
+                        secondToLastVariable := mload(add(predictionHex, add(0x20, mload(add(predictionHex, add(0x20, add(mul(secondToLastVariableNum, 0x20), mload(add(predictionHex, 0x40)))))))))
+                    }
+                    //getVariableFromNum == mload(var_iPtr), var_iPtr == +varOffset_i+0x20, varOffset_i == mload(+varsOffset+0x20+mul(varNum, 0x20)), varsOffset == mload(+0x40)
+                    // store varType 0x00 (literal)
+                    mstore(add(stackPtr, mul(0x40, sub(mload(stackPtr), 1))), 0x00)
+                    mstore(add(0x20, add(stackPtr, mul(0x40, sub(mload(stackPtr), 1)))), add(secondToLastVariable, lastVariable))
+                    mstore(stackPtr, sub(mload(stackPtr), 1))
+                    processPtr := add(processPtr, 0x01)
+                }
+                /*case 0x0E { //eq op
                     //lastVariableNum == mload(stackPtr+stackCounter*0x20)
                     let lastVariableNum := mload(add(stackPtr, mul(mload(stackPtr), 0x20)))
                     let secondToLastVariableNum := mload(add(stackPtr, mul(sub(mload(stackPtr), 1), 0x20)))
                     //getVariableFromNum == mload(var_iPtr), var_iPtr == +varOffset_i+0x20, varOffset_i == mload(+varsOffset+0x20+mul(varNum, 0x20)), varsOffset == mload(+0x40)
                     let lastVariable := mload(add(predictionHex, add(0x20, mload(add(predictionHex, add(0x20, add(mul(lastVariableNum, 0x20), mload(add(predictionHex, 0x40)))))))))
                     let secondToLastVariable := mload(add(predictionHex, add(0x20, mload(add(predictionHex, add(0x20, add(mul(secondToLastVariableNum, 0x20), mload(add(predictionHex, 0x40)))))))))
-                    mstore(add(stackPtr, mul(0x20, sub(mload(stackPtr), 1))), add(secondToLastVariable, lastVariable))
+                    mstore(add(stackPtr, mul(0x20, sub(mload(stackPtr), 1))), eq(secondToLastVariable, lastVariable))
                     mstore(stackPtr, sub(mload(stackPtr), 1))
                     processPtr := add(processPtr, 0x01)
-                }
+                }*/
                 default { 
                     return(0, 0)
                 } 
