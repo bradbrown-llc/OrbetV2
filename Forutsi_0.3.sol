@@ -26,11 +26,24 @@ contract Forutsi {
                 //let outPtr := add(predictionHex, mload(add(predictionHex, 0xC0)))
                 //outSize == mload(+get_i+14)
                 //let outSize := mload(add(predictionHex, add(0x14, get_i)))
-                pop(staticcall(gas(), shr(0x60, mload(add(predictionHex, get_i))), add(predictionHex, add(0xB4, get_i)), mload(add(predictionHex, add(0x94, get_i))), add(predictionHex, mload(add(predictionHex, 0xC0))), mload(add(predictionHex, add(0x14, get_i)))))
+                let scratchPtr := add(predictionHex, mload(add(predictionHex, 0xC0)))
+                pop(staticcall(gas(), shr(0x60, mload(add(predictionHex, get_i))), add(predictionHex, add(0xB4, get_i)), mload(add(predictionHex, add(0x94, get_i))), scratchPtr, mload(add(predictionHex, add(0x14, get_i)))))
                 //staticcallRetToVarsLoop
                 //retsCount == mload(+get_i+34)
-                for { let j := 0 } lt(j, add(predictionHex, add(0x34, get_i))) { j := add(j, 1) } {
-                    //need to get var_(i+varCount)Ptr and ret_iPtr and ret_iSize, then store ret_i into var_(i+varCount)
+                for { let j := 0 } lt(j, mload(add(predictionHex, add(0x34, get_i)))) { j := add(j, 1) } {
+                    //need to get var_(j+varCount)Ptr and ret_jPtr and ret_jSize, then store ret_j into var_(j+varCount)
+                    //var_(j+varCount)Ptr == +varOffset_(j+varCount)+0x20,
+                    //varOffset_(j+varCount) == mload(mul(j, 0x20)+mul(varCount, 0x20)++varsOffset+0x20), varsOffset == mload(+0x40)
+                    let varsOffset := mload(add(predictionHex, 0x40))
+                    let varOffset_jplusVarCount := mload(add(mul(j, 0x20), add(mul(varCount, 0x20), add(predictionHex, add(0x20, varsOffset)))))
+                    let ret_jSize := mload(add(mul(j, 0x20), add(predictionHex, add(0x54, get_i))))
+                    let ret_jPtr := scratchPtr
+                    let var_jaddVarCountPtr := add(predictionHex, add(0x20, varOffset_jplusVarCount))
+                    let test := add(var_jaddVarCountPtr, add(ret_jSize, ret_jPtr))
+                    for { let k := 0 } lt(k, ret_jSize) { k := add(k, 0x20) } {
+                        mstore(add(var_jaddVarCountPtr, k), mload(add(ret_jPtr, k)))
+                    }
+                    scratchPtr := add(scratchPtr, ret_jSize)
                 }
             }
         }
