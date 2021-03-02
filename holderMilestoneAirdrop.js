@@ -4,7 +4,7 @@ let tokenHoldersArray = [];
 let liqHoldersArray = [];
 let tokenHoldersCSV = "export-tokenholders-for-contract-0x2de27d3432d3188b53b02137e07b47896d347d45.csv";
 let liqHoldersCSV = "export-tokenholders-for-contract-0xdc6A5FAF34AfFCCc6a00D580ecB3308fC1848F22.csv";
-
+let winners = [];
 
 let getHolders = arg0 => {
 	let fileToRead = arg0 == 0 ? tokenHoldersCSV : liqHoldersCSV;
@@ -36,9 +36,14 @@ let getHolders = arg0 => {
 getHolders(0);
 getHolders(1);
 
-let chanceForLiqHolder = liqHoldersArray.length > 0 ? 2 / 3 : 0;
-let chanceForTokenHolder = 1 - chanceForLiqHolder;
-let winnerList = [tokenHoldersArray, liqHoldersArray][Math.random() <= chanceForTokenHolder ? 0 : 1];
-let winnerAddress = winnerList[parseInt(Math.random() * (winnerList.length))];
+let winnerCount = 4;
+for (let i = 0; i < winnerCount; i++) {
+	let chanceForLiqHolder = liqHoldersArray.length > 0 ? 2 / 3 : 0;
+	let chanceForTokenHolder = 1 - chanceForLiqHolder;
+	let whichList = Math.random() <= chanceForTokenHolder ? 0 : 1;
+	let winnerAddress = [tokenHoldersArray, liqHoldersArray][whichList][parseInt(Math.random() * ([tokenHoldersArray, liqHoldersArray][whichList].length))];
+	winners.push(winnerAddress);
+	[tokenHoldersArray, liqHoldersArray][whichList].splice([tokenHoldersArray, liqHoldersArray][whichList].indexOf(winnerAddress), 1);
+}
 
-console.log(winnerAddress);
+console.log(winners);
