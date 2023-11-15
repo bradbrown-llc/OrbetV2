@@ -1,3 +1,6 @@
+> ⛔️ **DEPRECATED** -
+These are very old and outdated files. Although, we may want to revisit this.
+
 # OrbetV2
 
 OrbetV2 is a WIP flexible EVM prediction market. 
